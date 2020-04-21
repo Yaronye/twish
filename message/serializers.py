@@ -5,12 +5,12 @@ from .models import Secret
 class SecretSerializer(serializers.ModelSerializer):
     class Meta:
         model = Secret
-        fields = ['id']
+        fields = ['content', 'password', 'maxviews', 'uuid']
 
 class FetchSecretSerializer(serializers.ModelSerializer):
     class Meta:
         model = Secret
-        fields = ['id', 'content', 'maxviews']
+        fields = ['content', 'maxviews']
 
 class PasswordSerializer(serializers.ModelSerializer):
     class Meta:
