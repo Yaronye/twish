@@ -1,11 +1,7 @@
-from django.shortcuts import render
-from django.contrib.auth.models import User, Group
-
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from django.contrib.auth.hashers import make_password
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework import permissions
 from .models import Secret
 from .serializers import SecretSerializer, FetchSecretSerializer, PasswordSerializer
 
@@ -23,12 +19,14 @@ class SecretViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         password = PasswordSerializer(data=request.POST)         #serializer used to check indata formatting and validation
         password.is_valid(raise_exception=True)
+        #hash = make_password(password.data['password'])
         if password.data['password'] == object.password:                    #request.POST['password'] == object.password, same result
             serializer = FetchSecretSerializer(instance=object)
             object.maxviews -= 1
             object.save()
-            if object.maxviews <= 0:
+            if object.maxviews <= 1:
                 object.delete()
             return Response(serializer.data)
         else:
+            #print(str(hash))
             return Response(b"WRONG PASSWORD")

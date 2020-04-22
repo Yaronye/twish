@@ -1,6 +1,4 @@
-import Crypto
 from Crypto.Cipher import AES
-
 import binascii
 
 

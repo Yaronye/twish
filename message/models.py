@@ -8,4 +8,3 @@ class Secret(models.Model):
     password = models.CharField(max_length=50)
     maxviews = models.IntegerField(default=1)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-
