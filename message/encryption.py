@@ -1,53 +1,30 @@
+#AUTHOR: mnothic, https://stackoverflow.com/questions/12524994/encrypt-decrypt-using-pycrypto-aes-256
+import base64
+import hashlib
+from Crypto import Random
 from Crypto.Cipher import AES
-import binascii
 
+class AESCipher(object):
 
-def encrypt(key, plaintext):
-    encobj = AES.new(fix_key(key), AES.MODE_ECB)
-    ciphertext = encobj.encrypt(fix_message(plaintext))
+    def __init__(self, key):
+        self.bs = AES.block_size
+        self.key = hashlib.sha256(key.encode()).digest()
 
-    # Resulting ciphertext in hex
-    return ciphertext.encode('hex')
+    def encrypt(self, raw):
+        raw = self._pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw.encode()))
 
+    def decrypt(self, enc):
+        enc = base64.b64decode(enc)
+        iv = enc[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
 
-def decrypt(key, ciphertext):
-    ciphertext = binascii.unhexlify(ciphertext)
+    def _pad(self, s):
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
 
-    decobj = AES.new(fix_key(key), AES.MODE_ECB)
-    plaintext = decobj.decrypt(ciphertext)
-
-    # Resulting plaintext
-    return unfix_message(plaintext)
-
-
-def fix_key(key):
-    """Make sure the key is exactly 16 characters long"""
-    key = key[:16]
-    while len(key) < 16:
-        key += 'a'  # spam a's until it's long enough
-    return key
-
-
-def fix_message(message):
-    """pad the string with null characters until
-    it's length is a multiple of 16"""
-
-    while len(message) % 16 != 0:
-        message += '\0'  # pad with null characters
-
-    return message
-
-
-def unfix_message(message):
-    """remove any null characters from the string"""
-
-    msg = ""
-    for c in message:
-        if c != '\0':
-            msg += c
-    return msg
-
-
-#    print fix_key("12345678901234567")
-#    print fix_key("banana")
-#    print len(fix_key("banana"))
+    @staticmethod
+    def _unpad(s):
+        return s[:-ord(s[len(s)-1:])]

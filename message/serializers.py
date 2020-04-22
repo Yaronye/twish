@@ -7,14 +7,14 @@ class SecretSerializer(serializers.ModelSerializer):
         model = Secret
         fields = ['content', 'password', 'maxviews', 'uuid']
 
-    # def create(self, validated_data):
-    #     secret = Secret(
-    #         content=validated_data['content'],
-    #         password=make_password(validated_data['password']),
-    #         maxviews=validated_data['maxviews'],
-    #     )
-    #     secret.save()
-    #     return secret
+    def create(self, validated_data):
+        secret = Secret(
+            content=validated_data['content'],
+            password=make_password(validated_data['password']),
+            maxviews=validated_data['maxviews'],
+        )
+        secret.save()
+        return secret
 
 class FetchSecretSerializer(serializers.ModelSerializer):
     class Meta:
