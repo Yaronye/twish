@@ -12,7 +12,6 @@ from .serializers import SecretSerializer, FetchSecretSerializer, PasswordSerial
 
 class SecretViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     lookup_field = 'uuid'
-    lookup_value_regex = '[0-9a-f]{32}'
     queryset = Secret.objects.all()
     serializer_class = SecretSerializer         #used for all methods, used if other is not specified
 
