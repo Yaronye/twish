@@ -1,27 +1,24 @@
 from rest_framework.response import Response
-from django.contrib.auth.hashers import check_password
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from .models import Secret
 from .serializers import SecretSerializer, FetchSecretSerializer, PasswordSerializer
-from .encryption import *
 
 
 class SecretViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    lookup_field = 'uuid'
-    queryset = Secret.objects.all()
-    serializer_class = SecretSerializer         #used for all methods, used if other is not specified
+    lookup_field = 'uuid'                       # use uuid to look up the correct database object instead of using pk
+    queryset = Secret.objects.all()             # access the objects from the database
+    serializer_class = SecretSerializer         # used if other is not specified
 
     @action(methods=['post'], detail=True)
-    def fetch(self, request, uuid):
+    def send(self, request, uuid):
         try:
             object = self.queryset.get(uuid=uuid)
         except Secret.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        password = PasswordSerializer(data=request.POST)         #serializer used to check indata formatting and validation
+            return Response({"message": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
+        password = PasswordSerializer(data=request.POST)     # serializer used to check indata formatting and validation
         password.is_valid(raise_exception=True)
-        check_password(password.data['password'], object.password)
-        if check_password(password.data['password'], object.password):                    #request.POST['password'] == object.password, same result
+        if password.data['password'] == object.password:
             serializer = FetchSecretSerializer(instance=object)
             object.maxviews -= 1
             object.save()
@@ -29,5 +26,4 @@ class SecretViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 object.delete()
             return Response(serializer.data)
         else:
-            print(str(hash))
-            return Response(b"WRONG PASSWORD")
+            return Response({"message": "WRONG PASSWORD"}, status=status.HTTP_403_FORBIDDEN)
